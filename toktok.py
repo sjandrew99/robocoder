@@ -9,7 +9,7 @@ class Tokenizer:
     # strings may be single or double quoted and may extend over multiple lines
 
     def __init__(self):
-        self.operators = ['=','{','}',';','.']
+        self.operators = ['=','{','}',';','.','[',']','(',')']
         self.operator_starts = [i[0] for i in self.operators] # in case any operators are multi-char
 
     def tokenize(self,filename,verbose=False):
@@ -122,11 +122,16 @@ class Tokenizer:
         
         return tok, charptr, colno
 
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--file',required=True,type=str)
+    parser.add_argument('--verbose',action='store_true')
+    
+    args = parser.parse_args()
+    t = Tokenizer()
+    tokens = t.tokenize(args.file,args.verbose)          
 
-f = sys.argv[1]
-t = Tokenizer()
-tokens = t.tokenize(f)          
-
-for t in tokens:
-    t['string'] = ''.join(t['chars'])
-    print(t['type'].upper() + '{' + t['string'] + '}')
+    for t in tokens:
+        t['string'] = ''.join(t['chars'])
+        print(t['type'].upper() + '{' + t['string'] + '}')
