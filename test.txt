@@ -1,0 +1,6 @@
+"This is a valid C file"
+int a = b; //this is a comment
+int /* this is a 
+multi-line comment */ c = 4;
+"this is a //comment inside a string"
+"this is a \" string with quotes inside"
