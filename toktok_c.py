@@ -9,13 +9,23 @@ class Tokenizer:
     # strings may be single or double quoted and may extend over multiple lines
 
     def __init__(self):
-        self.operators = ['=','{','}',';','.','[',']','(',')']
+        self.operators = ['=', # assignment
+                         '{','}','[',']','(',')', # grouping
+                         ';','.',':','!','?', # punctuation
+                         '&',
+                         '+','-','/','*', # arithmetic
+                         '~','%','^', # other math
+                         '<','>', # comparison
+                         '#'] # preprocessor
         self.operator_starts = [i[0] for i in self.operators] # in case any operators are multi-char
 
-    def tokenize(self,filename,verbose=False):
+    def tokenize_file(self,filename,verbose=False):
         with open(filename,'r') as fp:
             lines = fp.readlines()
         chars = ''.join(lines)
+        return self.tokenize(chars,verbose)
+        
+    def tokenize(self,chars,verbose=False):
 
         charptr = 0
         lineno = 1
@@ -130,7 +140,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     t = Tokenizer()
-    tokens = t.tokenize(args.file,args.verbose)          
+    tokens = t.tokenize_file(args.file,args.verbose)          
 
     for t in tokens:
         t['string'] = ''.join(t['chars'])
