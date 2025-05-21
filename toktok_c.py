@@ -3,7 +3,7 @@
 # FYI - do not call this file tokenize.py, because that's already the name of a python package
 
 import sys
-
+from Token import Token, TokenList
 class Tokenizer:
     # token types - string, comment, operator, identifier (which includes everything else)
     # strings may be single or double quoted and may extend over multiple lines
@@ -30,7 +30,7 @@ class Tokenizer:
         charptr = 0
         lineno = 1
         colno = 1
-        tokens = []
+        tokens = TokenList()
         while charptr < len(chars):
             # null state
             if chars[charptr] == ' ' or chars[charptr] == '\t' or chars[charptr] == '\r':
@@ -40,6 +40,7 @@ class Tokenizer:
                 charptr += 1
                 lineno += 1; colno = 1
                 continue
+            # TODO - add support for the backslash line-continuation thing
             elif chars[charptr] == '"' or chars[charptr] == "'":
                 token, charptr,lineno,colno = self.read_string(chars,charptr,lineno,colno)
                 tokens.append(token)
@@ -62,7 +63,7 @@ class Tokenizer:
 
     def read_string(self,chars,charptr,lineno,colno):
         char_term = chars[charptr] # " or ' 
-        tok = {'type':'string','chars':[],'line':lineno, 'col':colno}
+        tok = Token(type='string',line=lineno, col=colno)
         charptr += 1
         while True:
             if chars[charptr] == char_term:
@@ -75,23 +76,23 @@ class Tokenizer:
             elif chars[charptr] == '\n':
                 lineno += 1; colno = 1
         
-            tok['chars'].append(chars[charptr])
+            tok.chars.append(chars[charptr])
             charptr += 1
             colno += 1
         return tok,charptr,lineno,colno    
 
     def read_comment(self,chars,charptr,lineno,colno):
         # reads a '//' comment
-        tok = {'type':'comment','chars':[],'line':lineno, 'col':colno}
+        tok = Token(type='comment',line=lineno, col=colno)
         charptr += 2
         while chars[charptr] != '\n':
-            tok['chars'].append(chars[charptr])
+            tok.chars.append(chars[charptr])
             charptr += 1
         return tok, charptr
 
     def read_multiline_comment(self,chars,charptr,lineno,colno):
         # reads a '/*' comment
-        tok = {'type':'multiline comment','chars':[],'line':lineno, 'col':colno}
+        tok = Token(type='multiline comment',line=lineno, col=colno)
         charptr += 2; colno += 2
         while True:
             if chars[charptr] == '*' and chars[charptr+1] == '/':
@@ -99,13 +100,13 @@ class Tokenizer:
                 break
             if chars[charptr] == '\n': 
                 lineno += 1; colno = 0 # only because it will be incremented below
-            tok['chars'].append(chars[charptr])
+            tok.chars.append(chars[charptr])
             charptr += 1; colno += 1
         return tok, charptr, lineno, colno
         
     def read_operator(self,chars,charptr,lineno,colno):
         # TODO - probably needs some work for multi-char operators
-        tok = {'type':'operator','chars':[],'line':lineno,'col':colno}
+        tok = Token(type='operator',line=lineno,col=colno)
         for k in self.operators:
             match = 1
             for i in range(0,len(k)):
@@ -115,19 +116,19 @@ class Tokenizer:
             if match:
                 break
         for i in range(0,len(k)):        
-            tok['chars'].append(chars[charptr])
+            tok.chars.append(chars[charptr])
             charptr += 1; colno += 1
         return tok, charptr, colno
 
     def read_identifier(self,chars,charptr,lineno,colno):
         # reads anything that is not one of the above
-        tok = {'type':'identifier','chars':[],'line':lineno, 'col':colno}
+        tok = Token(type='identifier',line=lineno, col=colno)
         while True:
             if chars[charptr] == ' ' or chars[charptr] == '\t' or chars[charptr] == '\n' or chars[charptr] == '\r':
                 break
             elif chars[charptr] in self.operator_starts:
                 break
-            tok['chars'].append(chars[charptr])
+            tok.chars.append(chars[charptr])
             charptr += 1; colno += 1
         
         return tok, charptr, colno
@@ -142,6 +143,4 @@ if __name__ == "__main__":
     t = Tokenizer()
     tokens = t.tokenize_file(args.file,args.verbose)          
 
-    for t in tokens:
-        t['string'] = ''.join(t['chars'])
-        print(t['type'].upper() + '{' + t['string'] + '}')
+    print(tokens)
